@@ -8,9 +8,6 @@ import data
 import utils
 import pdb
 from torch.utils.data import DataLoader
-import _resnet__copy
-RANDOM_SEED = 42
-torch.manual_seed(RANDOM_SEED)
 
 
 parser = argparse.ArgumentParser()

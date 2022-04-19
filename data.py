@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.utils.data as data_utils
 import torchvision.transforms as transforms
+import csv
 
 
 class PatchCamelyon(data_utils.Dataset):
@@ -15,6 +16,7 @@ class PatchCamelyon(data_utils.Dataset):
 
         assert mode in ['train', 'valid', 'test']
         base_name = "camelyonpatch_level_2_split_{}_{}.h5"
+        csv_base_name = "camelyonpatch_level_2_split_{}_meta.csv"
 
         print('\n')
         print("# " * 50)
@@ -23,10 +25,19 @@ class PatchCamelyon(data_utils.Dataset):
         # Open the files
         h5X = h5py.File(os.path.join(path, base_name.format(mode, 'x')), 'r')
         h5y = h5py.File(os.path.join(path, base_name.format(mode, 'y')), 'r')
+        file = open(os.path.join(path, csv_base_name.format(mode)))
+        csvreader = csv.reader(file)
+        header = []
+        header = next(csvreader)
+        rows = []
+        for row in csvreader: rows.append(row)
+        meta_all = np.array(rows)
+        meta = meta_all[:, [1,2]]
 
         # Read into numpy array
         self.X = np.array(h5X.get('x'))
         self.y = np.array(h5y.get('y'))
+        self.attr = meta
         pdb.set_trace()
 
         print('Loaded {} dataset with {} samples'.format(mode, len(self.X)))
@@ -49,9 +60,13 @@ class PatchCamelyon(data_utils.Dataset):
         images = self._transform(self.X[_slice])
         images = torch.squeeze(images, 0)
         labels = torch.tensor(self.y[_slice].astype(np.float32)).view(-1, 1)
-        lebels = labels.squeeze()
+        labels = labels.squeeze()
+        attributes = self.attr[_slice]
+        attributes = attributes.squeeze()
+        attributes = np.float32(attributes)
 
-        return images, labels
+
+        return images, labels, attributes
 
     def _transform(self, images):
         tensors = []
