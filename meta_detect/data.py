@@ -8,11 +8,10 @@ import torchvision.transforms as transforms
 
 class PatchCamelyon(data_utils.Dataset):
 
-    def __init__(self, path, mode='train', batch_size=32, n_iters=None, augment=False):
+    def __init__(self, path, mode='train', n_iters=None, augment=False):
         super().__init__()
 
         self.n_iters = n_iters
-        self.batch_size = batch_size
 
         assert mode in ['train', 'valid', 'test']
         base_name = "camelyonpatch_level_2_split_{}_{}.h5"
@@ -45,10 +44,14 @@ class PatchCamelyon(data_utils.Dataset):
 
     def __getitem__(self, item):
         idx = item % self.__len__()
-        _slice = slice(idx*self.batch_size, (idx + 1) * self.batch_size)
+        _slice = slice(idx, (idx + 1))
+        pdb.set_trace()
         images = self._transform(self.X[_slice])
+        images = torch.squeeze(images, 0)
         labels = torch.tensor(self.y[_slice].astype(np.float32)).view(-1, 1)
-        return {'images': images, 'labels': labels}
+        lebels = labels.squeeze()
+
+        return images, labels
 
     def _transform(self, images):
         tensors = []
@@ -57,4 +60,4 @@ class PatchCamelyon(data_utils.Dataset):
         return torch.stack(tensors)
 
     def __len__(self):
-        return len(self.X) // self.batch_size
+        return len(self.X) 
