@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch, pdb
 from cbn import CBN
 
-from sequential_modified import Sequential
 BSZ = 4
 
 # attributes = torch.rand(4,312)
@@ -232,7 +231,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def feature_maps(self, x):
-        # pdb.set_trace()
+        pdb.set_trace()
         global attributes
         attributes = x[1]
         x = self.layer0(x[0])

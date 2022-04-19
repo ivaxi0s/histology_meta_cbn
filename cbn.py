@@ -16,12 +16,12 @@ class CBN(nn.Module):
         # self.width = width
 
         self.fc_gamma = nn.Sequential(
-            nn.Linear(312, 1024),
+            nn.Linear(2, 1024),
             nn.ReLU(inplace=True),
             nn.Linear(1024, self.channel),
             ).to(DEVICE)
         self.fc_beta = nn.Sequential(
-            nn.Linear(312, 1024),
+            nn.Linear(2, 1024),
             nn.ReLU(inplace=True),
             nn.Linear(1024, self.channel),
             ).to(DEVICE)

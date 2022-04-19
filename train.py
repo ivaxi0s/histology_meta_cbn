@@ -6,6 +6,7 @@ import torch.optim as optim
 import networks
 import data
 import utils
+import _resnet__copy
 import pdb
 from torch.utils.data import DataLoader
 
@@ -31,7 +32,7 @@ valid_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='valid'), 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Model
-model = networks.CamelyonClassifier()
+model = _resnet__copy.resnet50().to(DEVICE)
 model.to(device)
 
 # Optimizer

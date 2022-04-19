@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torch.optim as optim
 
-import networks
 import data
 import utils
 import pdb
@@ -34,7 +33,7 @@ valid_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='valid'), 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Model
-model = networks.CamelyonClassifier()
+model = _resnet__copy.resnet50().to(device)
 model.to(device)
 
 # Optimizer
@@ -43,8 +42,6 @@ optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999), weigh
 # Loss function
 criterion = utils.loss
 
-# Visdom writer
-# writer = utils.Writer()
 
 
 def train():
@@ -58,7 +55,7 @@ def train():
         _correctHits = 0
         _total = 0
         for i,batch in enumerate(train_dataloader,1):
-            pdb.set_trace()
+            
 
             # Zero gradient
             optimizer.zero_grad()
@@ -71,8 +68,8 @@ def train():
             inp_tuple = (image, attribute)
 
             # Forward pass
-            predicted = model(inp_tuple)
 
+            predicted = model(inp_tuple)
             # Loss
             loss = criterion(predicted, label)
 
