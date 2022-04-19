@@ -27,6 +27,7 @@ class PatchCamelyon(data_utils.Dataset):
         # Read into numpy array
         self.X = np.array(h5X.get('x'))
         self.y = np.array(h5y.get('y'))
+        pdb.set_trace()
 
         print('Loaded {} dataset with {} samples'.format(mode, len(self.X)))
         print("# " * 50)
@@ -45,7 +46,6 @@ class PatchCamelyon(data_utils.Dataset):
     def __getitem__(self, item):
         idx = item % self.__len__()
         _slice = slice(idx, (idx + 1))
-        pdb.set_trace()
         images = self._transform(self.X[_slice])
         images = torch.squeeze(images, 0)
         labels = torch.tensor(self.y[_slice].astype(np.float32)).view(-1, 1)

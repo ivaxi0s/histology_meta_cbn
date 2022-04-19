@@ -23,10 +23,9 @@ args = parser.parse_args()
 print(args)
 num_epochs = 2
 # Dataset
-pdb.set_trace()
 
 train_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='train', augment=True), batch_size=args.batch_size, shuffle=True)
-test_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='valid'), batch_size=args.batch_size, shuffle=True)
+valid_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='valid'), batch_size=args.batch_size, shuffle=True)
 
 # Device
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -49,11 +48,13 @@ def train():
     model.train()
 
     losses = []
+    
 
     for epoch in range(num_epochs):
         losses = []
+        _correctHits = 0
+        _total = 0
         for i,batch in enumerate(train_dataloader,1):
-            pdb.set_trace()
 
             # Zero gradient
             optimizer.zero_grad()
@@ -73,9 +74,17 @@ def train():
             # Back-propagation
             loss.backward()
             optimizer.step()
+            _correctHits += (predicted==label).sum().item()
+            _total += label.size(0)
 
-            print("Iteration: {:04d} of {:04d}\t\t Train Loss: {:.4f}".format(epoch, i, np.mean(losses)),
+            metrics = utils.metrics(predicted, label)
+
+            print("Iteration: {:06d} of {:06d}\t\t Train Loss: {:.4f}".format(epoch, i, np.mean(losses)),
                 end="\r")
+
+            train_acc = (_correctHits/_total)*100
+
+        print('Train Accuracy on epoch ',epoch+1,'= ',str(train_acc))
 
             # if idx % args.visdom_freq == 0:
 
@@ -99,43 +108,50 @@ def train():
                 # Set model to training mode again
                 # model.train()
 
-            if idx % args.save_freq == 0:
-                torch.save(model.state_dict(), 'models/model-{:05d}.pth'.format(idx))
+            # if idx % args.save_freq == 0:
+            #     torch.save(model.state_dict(), 'models/model-{:05d}.pth'.format(idx))
 
 
-def validation():
-    pdb.set_trace()
-    model.eval()
+# def validation():
+#     pdb.set_trace()
+#     model.eval()
 
-    losses = []
-    accuracy = []
-    f1 = []
-    specificity = []
-    precision = []
-    for idx in range(len(dataset_valid)):
+#     losses = []
+#     accuracy = []
+#     f1 = []
+#     specificity = []
+#     precision = []
 
-        sample = dataset_valid[idx]
+    # for epoch in range(num_epochs):
+    #     losses = []
+    #     for i,batch in enumerate(train_dataloader,1):
+    #         pdb.set_trace()
 
-        # Load data to GPU
-        images = sample['images'].to(device)
-        labels = sample['labels'].to(device)
+    #         # Zero gradient
+    #         optimizer.zero_grad()
 
-        # Forward pass
-        predicted = model(images)
+    #         # Load data to GPU
+    #         image, label = batch
+    #         image = image.to(device)
+    #         label = label.to(device)
 
-        # Loss
-        loss = criterion(predicted, labels)
-        losses.append(loss.data.item())
+    #         predicted = model(image)
 
-        # Metrics
-        metrics = utils.metrics(predicted, labels)
-        accuracy.append(metrics['accuracy'])
-        f1.append(metrics['f1'])
-        specificity.append(metrics['specificity'])
-        precision.append(metrics['precision'])
+    #         # Loss
+    #         loss = criterion(predicted, label)
+    #         losses.append(loss.data.item())
 
-    return torch.tensor(losses).mean(), torch.tensor(accuracy).mean(), torch.tensor(f1).mean(), \
-           torch.tensor(specificity).mean(), torch.tensor(precision).mean()
+            
+
+    #         # Metrics
+    #         metrics = utils.metrics(predicted, labels)
+    #         accuracy.append(metrics['accuracy'])
+    #         f1.append(metrics['f1'])
+    #         specificity.append(metrics['specificity'])
+    #         precision.append(metrics['precision'])
+
+    # return torch.tensor(losses).mean(), torch.tensor(accuracy).mean(), torch.tensor(f1).mean(), \
+    #        torch.tensor(specificity).mean(), torch.tensor(precision).mean()
 
 
 if __name__ == '__main__':
