@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch, pdb
 from cbn import CBN
 
-BSZ = 4
 
 # attributes = torch.rand(4,312)
 __all__ = ['ResNet', 'resnet18', 'resnet20', 'resnet34', 'resnet50', 'resnet101',
