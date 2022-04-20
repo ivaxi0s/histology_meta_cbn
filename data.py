@@ -33,11 +33,17 @@ class PatchCamelyon(data_utils.Dataset):
         for row in csvreader: rows.append(row)
         meta_all = np.array(rows)
         meta = meta_all[:, [1,2]]
+        meta_x = meta[:,0].astype(np.float)
+        res_a = (meta_x - meta_x.mean())/meta_x.std()
+        meta_y = meta[:,1].astype(np.float)
+        res_b = (meta_y - meta_y.mean())/meta_y.std()
+        attr = np.vstack((res_a, res_b))
+        attr = np.swapaxes(attr,0,1)
 
         # Read into numpy array
         self.X = np.array(h5X.get('x'))
         self.y = np.array(h5y.get('y'))
-        self.attr = meta
+        self.attr = attr
 
         print('Loaded {} dataset with {} samples'.format(mode, len(self.X)))
         print("# " * 50)
@@ -59,8 +65,8 @@ class PatchCamelyon(data_utils.Dataset):
         labels = labels.squeeze()
         attributes = self.attr[_slice]
         attributes = attributes.squeeze()
+        if labels == 0 : attributes = np.zeros(attributes.shape)
         attributes = np.float32(attributes)
-
 
         return images, labels, attributes
 
