@@ -8,7 +8,7 @@ class CamelyonClassifier(nn.Module):
     def __init__(self):
         super().__init__()
 
-        backbone = models.resnet18(pretrained=True)
+        backbone = models.resnet18(pretrained=False)
         self.backbone = nn.Sequential(*list(backbone.children())[:-1])
         # self.pool = nn.MaxPool2d(3, 1)
         self.fc = nn.Sequential(nn.Linear(512, 1), nn.Sigmoid())

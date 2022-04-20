@@ -179,7 +179,7 @@ class ResNet(nn.Module):
         # this variable is added for compatibility reason
         self.pool = self.avgpool
         # pdb.set_trace()
-        self.fc = nn.Linear(512 * 4, 200)
+        self.fc = nn.Linear(512, 1)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -230,7 +230,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def feature_maps(self, x):
-        pdb.set_trace()
+        # pdb.set_trace()
         global attributes
         attributes = x[1]
         x = self.layer0(x[0])

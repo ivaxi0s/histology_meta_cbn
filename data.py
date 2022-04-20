@@ -38,7 +38,6 @@ class PatchCamelyon(data_utils.Dataset):
         self.X = np.array(h5X.get('x'))
         self.y = np.array(h5y.get('y'))
         self.attr = meta
-        pdb.set_trace()
 
         print('Loaded {} dataset with {} samples'.format(mode, len(self.X)))
         print("# " * 50)
@@ -46,9 +45,6 @@ class PatchCamelyon(data_utils.Dataset):
         if augment:
             self.transform = transforms.Compose([transforms.ToPILImage(),
                                                  transforms.ColorJitter(brightness=.5, saturation=.25, hue=.1, contrast=.5),
-                                                 transforms.RandomAffine(10, (0.05, 0.05), fillcolor=(255, 255, 255)),
-                                                 transforms.RandomHorizontalFlip(.5),
-                                                 transforms.RandomVerticalFlip(.5),
                                                  transforms.ToTensor()])
         else:
             self.transform = transforms.Compose([transforms.ToPILImage(),

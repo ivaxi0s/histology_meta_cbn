@@ -14,7 +14,7 @@ class CBN(nn.Module):
         self.gammas = nn.Parameter(torch.ones(2, self.channel))
         # self.height = height
         # self.width = width
-
+        
         self.fc_gamma = nn.Sequential(
             nn.Linear(2, 1024),
             nn.ReLU(inplace=True),
@@ -41,6 +41,11 @@ class CBN(nn.Module):
         batch_size, channel, height, width = feature.data.shape
         # pdb.set_trace()
         delta_betas, delta_gammas = self.create_cbn(attributes)
+
+        if attributes.mean() == 0 : delta_betas, delta_gammas = (torch.zeros(channel) , torch.zeros(channel))
+        print("-------")
+        print("delta_beta:", delta_betas.mean())
+        print("delta_gamma:", delta_gammas.mean())
         
         betas_cloned = self.betas.clone()
         gammas_cloned = self.gammas.clone()

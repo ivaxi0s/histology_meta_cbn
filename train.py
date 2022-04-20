@@ -1,4 +1,4 @@
-import argparse
+import argparse, copy
 import numpy as np
 import torch
 import torch.optim as optim
@@ -7,6 +7,7 @@ import networks
 import data
 import utils
 import _resnet__copy
+import torch.nn as nn
 import pdb
 from torch.utils.data import DataLoader
 
@@ -32,14 +33,14 @@ valid_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='valid'), 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Model
-model = _resnet__copy.resnet50().to(DEVICE)
+model = _resnet__copy.resnet18().to(device)
 model.to(device)
 
 # Optimizer
 optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999), weight_decay=1e-8)
 
 # Loss function
-criterion = utils.loss
+criterion = nn.MSELoss()
 
 # Visdom writer
 # writer = utils.Writer()
@@ -55,8 +56,8 @@ def train():
         losses = []
         _correctHits = 0
         _total = 0
+        losses2 = []
         for i,batch in enumerate(train_dataloader,1):
-            pdb.set_trace()
 
             # Zero gradient
             optimizer.zero_grad()
@@ -70,9 +71,21 @@ def train():
 
             # Forward pass
             predicted = model(inp_tuple)
+            predicted = predicted.squeeze().to(device)
+            pdb.set_trace()
+            
+
+            no_cbn_model = copy.deepcopy(model)
+            zero_attributes = torch.zeros(attribute.shape)
+            inp_tuple2 = (image, zero_attributes)
+            predicted2 = no_cbn_model(inp_tuple2)
+            predicted2 = predicted2.squeeze().to(device)          
+
 
             # Loss
             loss = criterion(predicted, label)
+            loss2 = criterion(predicted2, label)
+            losses2.append(loss.data.item())
 
             losses.append(loss.data.item())
 
@@ -81,11 +94,13 @@ def train():
             optimizer.step()
             _correctHits += (predicted==label).sum().item()
             _total += label.size(0)
+            # pdb.set_trace()
 
             metrics = utils.metrics(predicted, label)
 
-            print("Iteration: {:06d} of {:06d}\t\t Train Loss: {:.4f}".format(epoch, i, np.mean(losses)),
-                end="\r")
+            print("Iteration: {:06d} of {:06d}\t\t Train Loss: {:.4f}".format(epoch, i, np.mean(losses)))
+
+            print("Iteration: {:06d} of {:06d}\t\t Train Loss2: {:.4f}".format(epoch, i, np.mean(losses2)))
 
             train_acc = (_correctHits/_total)*100
 
