@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 import pdb
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+
+# default `log_dir` is "runs" - we'll be more specific here
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -8,6 +12,7 @@ class CBN(nn.Module):
     def __init__(self, channel):
         super(CBN, self).__init__()
         self.channel = channel
+        # self.biases = biases
         # self.attributes = attributes
         # self.batch_size = batch_size
         self.betas = nn.Parameter(torch.zeros(2, self.channel))
@@ -39,13 +44,11 @@ class CBN(nn.Module):
 
     def forward(self, feature, attributes):
         batch_size, channel, height, width = feature.data.shape
-        # pdb.set_trace()
-        delta_betas, delta_gammas = self.create_cbn(attributes)
+        if attributes.mean() != 0 : 
+            delta_betas, delta_gammas = self.create_cbn(attributes)
 
         if attributes.mean() == 0 : delta_betas, delta_gammas = (torch.zeros(channel) , torch.zeros(channel))
-        print("-------")
-        print("delta_beta:", delta_betas.mean())
-        print("delta_gamma:", delta_gammas.mean())
+
         
         betas_cloned = self.betas.clone()
         gammas_cloned = self.gammas.clone()
@@ -67,9 +70,13 @@ class CBN(nn.Module):
         # normalize the feature map
         feature_normalized = (feature-batch_mean)/torch.sqrt(batch_var+1.0e-5)
 
+        # print("Means of weights & biases:", gammas_expanded.mean(), betas_expanded.mean())
+
         # get the normalized feature map with the updated beta and gamma values
-        # out = torch.mul(feature_normalized, gammas_expanded) + betas_expanded
-        return feature_normalized
+        out = torch.mul(feature_normalized, gammas_expanded) + betas_expanded
+
+        # print("Before and After MLP:", feature_normalized, out)
+        return out
 
 # pdb.set_trace()
 # inp = torch.randn(4,312) # batchxattr
