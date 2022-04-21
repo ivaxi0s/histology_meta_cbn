@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 parser = argparse.ArgumentParser()
 parser.add_argument('-data_path', required=True, help="Path to test HDF5 files.")
 parser.add_argument('-results_path', default='results/', help='Folder to save results file in')
-parser.add_argument('-saved_model', default= '/home/ivsh/scratch/projects/histology_meta_cbn/models/job_models-00005.pth', help="Path to trained model file")
+parser.add_argument('-saved_model', default= '/home/ivsh/scratch/projects/histology_meta_cbn/models/job_models-00007.pth', help="Path to trained model file")
 parser.add_argument('-batch_size', default=128, type=int, help='Batch size')
 parser.add_argument('-device', default=0, type=int, help='CUDA device')
 args = parser.parse_args()

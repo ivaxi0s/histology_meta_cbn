@@ -52,6 +52,11 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = _resnet__copy.resnet18().to(device)
 model.to(device)
 
+# model = _resnet__copy.resnet18().to(device)
+# # model.load_state_dict(torch.load('/home/ivsh/scratch/projects/histology_meta_cbn/models/job_models-0000.pth'))
+# model.eval()
+
+
 # Optimizer
 optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999), weight_decay=1e-8)
 
@@ -97,7 +102,7 @@ def get_children(model: torch.nn.Module):
 
 
 sig = nn.Sigmoid()
-mse = nn.MSELoss()
+mse = nn.KLDivLoss()
 
 def train():
     model.train()
@@ -144,6 +149,9 @@ def train():
             losses2.append(loss2.data.item())
             losses.append(loss.data.item())
 
+            # if loss2 >= loss+0.4:
+            #     loss = 0.9*loss + 0.1*loss2
+            # else:
             loss = loss + loss2
 
             # Back-propagation
