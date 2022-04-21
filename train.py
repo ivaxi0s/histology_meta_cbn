@@ -15,7 +15,7 @@ from functools import partial
 import wandb
 import statistics as st
 
-torch.manual_seed(0)
+torch.manual_seed(10)
 
 
 
@@ -29,7 +29,7 @@ class SaveAct:
 parser = argparse.ArgumentParser()
 parser.add_argument('-data_path', required=True, help="Path to PCam HDF5 files.")
 parser.add_argument('-save_path', default='models/', help="Path to save trained models")
-parser.add_argument('-lr', default=1e-2, type=float, help="Learning rate")
+parser.add_argument('-lr', default=1e-3, type=float, help="Learning rate")
 parser.add_argument('-batch_size', default=128, type=int, help="Batch size")
 parser.add_argument('-n_iters', default=10000, type=int, help="Number of train iterations")
 parser.add_argument('-device', default=0, type=int, help="CUDA device")
@@ -37,7 +37,7 @@ parser.add_argument('-save_freq', default=1000, type=int, help="Frequency to sav
 parser.add_argument('-visdom_freq', default=250, type=int, help="Frequency  plot training results")
 args = parser.parse_args()
 print(args)
-num_epochs = 3
+num_epochs = 20
 # Dataset
 
 train_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='train', augment=True), batch_size=args.batch_size, shuffle=True)
@@ -101,13 +101,17 @@ mse = nn.MSELoss()
 
 def train():
     model.train()
-    train_acc = []    
+    train_acc = []
+    test_acc_lst = []
+    train_acc_lst = []
+    val_acc_lst = []    
 
     for epoch in range(num_epochs):
         losses = []
         _correctHits = 0
         _total = 0
         losses2 = []
+        
         for i,batch in enumerate(train_dataloader,1):
 
             # Zero gradient
@@ -148,32 +152,31 @@ def train():
 
             metrics = utils.metrics(predicted, label) 
             train_acc.append(metrics['accuracy'] )         
-            print("\n Iteration: {:06d} of {:06d}\t\t Train CBN Loss: {:.4f} \t\t".format(epoch, i, np.mean(losses)), 
+            print("\n Iteration: {:06d} of {:06d}\t\t Train CBN Loss: {:.4f} \t\t MSE  {:.4f} \t\t".format(epoch, i, np.mean(losses), np.mean(losses2)), 
                 end="\n\n")
         
         
-        train_acc_lst = []
         train_acc_lst.append(st.mean(train_acc))
         lst = np.asarray(losses)
         np.savetxt("losses.csv", lst, delimiter=",")
         lst = np.asarray(losses2)
         np.savetxt("losses2.csv", lst, delimiter=",")
-        torch.save(model.state_dict(), 'models/model-{:05d}.pth'.format(epoch))
-        val_acc_lst = []
+        torch.save(model.state_dict(), 'models/job_models-{:05d}.pth'.format(epoch))
         v = validation()
         val_acc_lst.append(v)
-        test_acc_lst = []
+        
         t = test()
         test_acc_lst.append(t)
         print("accuracies:" , st.mean(train_acc), v, t)
 
 
     lst = np.asarray(train_acc_lst)
-    np.savetxt("train_acc_cbn.csv", lst, delimiter=",")
+    np.savetxt("train_acc_cbn_tn.csv", lst, delimiter=",")
     lst = np.asarray(val_acc_lst)
-    np.savetxt("val_acc_cbn.csv", lst, delimiter=",")
+    np.savetxt("val_acc_cbn_tn.csv", lst, delimiter=",")
     lst = np.asarray(test_acc_lst)
-    np.savetxt("test_acc_cbn.csv", lst, delimiter=",")
+    np.savetxt("test_acc_cbn_Tn.csv", lst, delimiter=",")
+
 
 def validation():
     model.eval()
@@ -185,9 +188,6 @@ def validation():
     precision = []
 
     for i,batch in enumerate(valid_dataloader,1):
-
-        # Zero gradient
-        optimizer.zero_grad()
 
         # Load data to GPU
         image, label, attribute = batch
@@ -211,6 +211,8 @@ def validation():
         f1.append(metrics['f1'])
         specificity.append(metrics['specificity'])
         precision.append(metrics['precision'])
+
+        print("acc_val:", metrics['accuracy'] )
 
     return torch.tensor(accuracy).mean()
 

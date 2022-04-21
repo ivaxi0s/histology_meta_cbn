@@ -37,7 +37,7 @@ parser.add_argument('-save_freq', default=1000, type=int, help="Frequency to sav
 parser.add_argument('-visdom_freq', default=250, type=int, help="Frequency  plot training results")
 args = parser.parse_args()
 print(args)
-num_epochs = 4
+num_epochs = 3
 # Dataset
 
 train_dataloader = DataLoader(data.PatchCamelyon(args.data_path, mode='train', augment=True), batch_size=args.batch_size, shuffle=True)
@@ -103,7 +103,7 @@ def train():
                 end="\n\n")
 
         train_acc_lst = []
-        train_acc_lst.append(torch.mean(train_acc))
+        train_acc_lst.append(st.mean(train_acc))
         lst = np.asarray(losses)
         np.savetxt("losses.csv", lst, delimiter=",")
         val_acc_lst = []
@@ -112,19 +112,17 @@ def train():
         test_acc_lst = []
         t = test()
         test_acc_lst.append(t)
-        print("accuracies:" , train_acc.mean(), v, t)
+        print("accuracies:" , st.mean(train_acc), v, t)
         torch.save(model.state_dict(), 'models_renet/model-{:05d}.pth'.format(epoch))
 
-        
         # lst.append(torch.tensor(losses).mean(), torch.tensor(accuracy).mean(), torch.tensor(f1).mean(), \
         #    torch.tensor(specificity).mean(), torch.tensor(precision).mean())
-        lst = np.asarray(train_acc_lst)
-        np.savetxt("train_acc_reset.csv", lst, delimiter=",")
-        lst = np.asarray(val_acc_lst)
-        np.savetxt("val_acc_resnet.csv", lst, delimiter=",")
-        lst = np.asarray(test_acc_lst)
-        np.savetxt("test_acc_resnet.csv", lst, delimiter=",")  
-        pdb.set_trace()  
+    lst = np.asarray(train_acc_lst)
+    np.savetxt("train_acc_reset.csv", lst, delimiter=",")
+    lst = np.asarray(val_acc_lst)
+    np.savetxt("val_acc_resnet.csv", lst, delimiter=",")
+    lst = np.asarray(test_acc_lst)
+    np.savetxt("test_acc_resnet.csv", lst, delimiter=",")    
         
 def validation():
     model.eval()
@@ -136,7 +134,6 @@ def validation():
     precision = []
 
     for i,batch in enumerate(valid_dataloader,1):
-        pdb.set_trace()
 
         # Zero gradient
         optimizer.zero_grad()
